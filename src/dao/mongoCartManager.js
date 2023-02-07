@@ -7,7 +7,7 @@ class MongoCartManager{
 
     async createCart(){
         try{
-            const createdCart= await cartModel.create({products:[{_id: "", quantity: ""}]})
+            const createdCart= await cartModel.create({})
             console.log(createdCart)
             return ({
                     state: "successful",
@@ -24,7 +24,7 @@ class MongoCartManager{
 
    async getProductsByCartId(cartId){
     try{
-        const foundCart = await cartModel.findById(cartId).lean()
+        const foundCart = await cartModel.findById(cartId).populate('products.productId').lean()
         return({
             state: "successful",
             message:`We've found a cart`,
@@ -40,21 +40,22 @@ class MongoCartManager{
 
    async addProductToCartById(productId, cartId){
     try {
-        const foundCart = await this.getProductsByCartId(cartId)
-        const modifyCart = {...foundCart.cart}
-        const productExists = modifyCart.products.find((product) => product.productId === productId) ?? false
-        if(productExists){
-            const IndexProduct = modifyCart.products.findIndex((product) => product.productId === productId)
-            modifyCart.products[IndexProduct].quantity++
-            const result =  await cartModel.findByIdAndUpdate(cartId, modifyCart).lean()
+        const foundCart = await cartModel.findById(cartId).lean()
+        const productExists = foundCart.products.find((product) => product.productId.equals(productId)) ?? false
+        if(productExists) {
+            const IndexProduct = foundCart.products.findIndex((product) => product.productId.equals(productId))
+            foundCart.products[IndexProduct].quantity++
+            await cartModel.findByIdAndUpdate(cartId, foundCart).lean()
+            const result = await cartModel.findById(cartId).populate('products.productId').lean()
             return ({
                 state: "successful",
                 message:`You've added a product to the cart`,
                 cart: result
             })
         } else {
-            modifyCart.products.push({productId: productId, quantity: 1})
-            const result =  await cartModel.findByIdAndUpdate(cartId, modifyCart).lean()
+            foundCart.products.push({productId: productId, quantity: 1})
+            await cartModel.findByIdAndUpdate(cartId, foundCart)
+            const result = await cartModel.findById(cartId).populate('products.productId').lean()
             return ({
                 state: "successful",
                 message:`You've added a product to the cart`,
@@ -68,8 +69,6 @@ class MongoCartManager{
         })
     }
     
-    
-    //await cartModel.findByIdAndUpdate(cartId, foundCart)
    }
 
 }
