@@ -1,0 +1,8 @@
+<div>
+    <h3>Productos</h3>
+        <ul>
+        {{#each renderData}}
+            <li>{{this.productId.title}} - {{this.description}} - ${{this.price}} - stock: {{this.stock}} <button id="{{this.id}}">Añadir al carrito</button></li>
+        {{/each}}
+        </ul>
+</div>

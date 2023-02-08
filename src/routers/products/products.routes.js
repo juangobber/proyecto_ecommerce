@@ -13,21 +13,26 @@ const productosDb = new ProductManagmentDB()
 router.get('/', async (req, res) => {
     
     try{
-        const products = await productos.getProducts()
+        const respuesta = await productosDb.getProducts(req.query)
+        const data = {
+            status: 'success',
+            payload: respuesta.docs,
+            totalPages: respuesta.totalPages,
+            prevPage: respuesta.prevPage,
+            nextPage: respuesta.nextPage,
+            page: respuesta.page,
+            hasPrevPage:respuesta.hasPrevPage,
+            hasNextPage: respuesta.hasNextPage,
+            prevLink: (respuesta.hasPrevPage ? "localhost:8080/products?page=$" + respuesta.prevPage : null),
+            nexLink: (respuesta.hasNextPage ? "localhost:8080/products?page="+respuesta.nextPage : null)}
         
-        if (req.query.limit){
-            res.json({
-                state: "successfull",
-                productos:products.slice(0,req.query.limit)
-            })
-        } else {
-            res.json({
-                state: "successful",
-                productos: products
-            })
-        }
+           // res.send(data)
+            const renderData = data.payload
+            res.render('products', {renderData}) 
+
     }
-    catch{res.send("hubo un error")
+    catch(error){
+        console.log(error)
     } 
 })
 

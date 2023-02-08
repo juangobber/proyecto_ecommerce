@@ -22,7 +22,11 @@ router.post('/', async (req, res)=>{
 });
 
 router.get('/:cid', async (req, res)=> {
-    res.send(await carritoDb.getProductsByCartId(req.params.cid))
+    const data = await carritoDb.getProductsByCartId(req.params.cid)
+    cartData = data.cart.products
+    console.log(cartData)
+    res.render('cart', {cartData})
+    
 });
 
 router.post('/:cid/product/:pid', async (req,res)=>{
@@ -33,8 +37,41 @@ router.post('/:cid/product/:pid', async (req,res)=>{
     }
     else {
         res.send("El producto no existe")
+    }  
+})
+
+router.delete('/:cid/product/:pid', async (req,res)=>{
+    const requestedProduct = await productosDb.getProductById(req.params.pid)
+    const requestedCart = await carritoDb.getProductsByCartId(req.params.cid)
+    if (requestedProduct && requestedCart){
+        console.log("El producto existe y el carrito existe")
+        res.json(await carritoDb.deleteProductInCart(req.params.pid, req.params.cid))
     }
-    
+    else {
+        res.send("El producto no existe")
+    }
+})
+
+router.put('/:cid/product/:pid', async (req,res)=>{
+    const requestedProduct = await productosDb.getProductById(req.params.pid)
+    if (requestedProduct){
+        console.log("El producto existe")
+        res.json(await carritoDb.updateQuantity(req.body, req.params.cid, req.params.pid))
+    }
+    else {
+        res.send("El producto no existe")
+    }  
+})
+
+router.delete('/:cid', async (req,res)=>{
+    const requestedCart = await carritoDb.getProductsByCartId(req.params.cid)
+    if (requestedCart){
+        console.log("el carrito existe")
+        res.json(await carritoDb.deleteAllProducts(req.params.cid))
+    }
+    else {
+        res.send("El carrito no existe")
+    }
 })
 
 module.exports = router;

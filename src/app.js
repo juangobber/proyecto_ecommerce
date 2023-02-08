@@ -23,7 +23,7 @@ app.set('view engine', 'handlebars')
 //  import routes
 const appRoutes = require('./routers/app.routes')
 //  Initialize routes
-app.use(appRoutes)
+app.use('/api',appRoutes)
 
 //Run the server
 const httpServer = app.listen(PORT, ()=>{

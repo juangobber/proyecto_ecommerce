@@ -5,8 +5,27 @@ class MongoProductManager{
     
     }
 
-    async getProducts(){
-       return await productsModel.find().lean()
+    async getProducts({page, limit, sort, query}){
+       try{
+        const filter =  query ? {category: query} : {}
+
+        const options = {
+            sort: (sort ? {price: sort} : {}),
+            limit: limit ?? 10,
+            page: page ?? 1,
+            lean: true
+        }
+
+        const response = await productsModel.paginate(filter, options) 
+        return response
+       }
+       catch(error){
+        return ({
+            state: "Error",
+            message: `An error has occurred: ${error}`
+        })
+       }
+       // return await productsModel.find().lean()
     }
 
     async getProductById(productId){
@@ -23,7 +42,7 @@ class MongoProductManager{
 
     async addProduct(productObject){
             const newProduct = productObject
-            const codeValidation = await products.findOne({code: newProduct.code}).lean()
+            const codeValidation = await productsModel.findOne({code: newProduct.code}).lean()
             if(!codeValidation){
                 try{
                     await productsModel.insertMany(newProduct)
@@ -54,7 +73,7 @@ class MongoProductManager{
         const productUpdate = await productsModel.findByIdAndUpdate(id, updatedProduct)
         return ({
             state: "product updated",
-            message: `The product with the ID ${productDeleted._id} was updated`,
+            message: `The product with the ID ${productUpdate._id} was updated`,
             product: productUpdate
         })
        }catch(error){
